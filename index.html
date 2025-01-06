@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+        #playPauseButtonContainer {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+
+        #openWebsiteButtonContainer {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 999;
+        }
+
+        #playPauseButton, #openWebsiteButton {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            border: none;
+        }
+
+        #playPauseButton {
+            background-color: #FFD700;
+            color: #000;
+        }
+
+        #openWebsiteButton {
+            background-color: #1E90FF;
+            color: #fff;
+        }
+
+        .a-enter-vr-button {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="playPauseButtonContainer">
+        <button id="playPauseButton" disabled>Play</button>
+    </div>
+
+    <div id="openWebsiteButtonContainer">
+        <button id="openWebsiteButton">Open Website</button>
+    </div>
+
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+        <a-assets>
+            <video id="demoVideo1" src="play.mp4" playsinline></video>
+            <video id="demoVideo2" src="s2.mp4" playsinline></video>
+            <video id="demoVideo3" src="s3.mp4" playsinline></video>
+            <video id="demoVideo4" src="s4.mp4" playsinline></video>
+        </a-assets>
+
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+        <a-entity id="target1" mindar-image-target="targetIndex: 0">
+            <a-plane id="videoDisplay1" position="0 0 0" height="0.59" width="1" material="src: #demoVideo1"></a-plane>
+        </a-entity>
+
+        <a-entity id="target2" mindar-image-target="targetIndex: 1">
+            <a-plane id="videoDisplay2" position="0 0 0" height="0.59" width="1" material="src: #demoVideo2"></a-plane>
+        </a-entity>
+
+        <a-entity id="target3" mindar-image-target="targetIndex: 2">
+            <a-plane id="videoDisplay3" position="0 0 0" height="0.59" width="1" material="src: #demoVideo3"></a-plane>
+        </a-entity>
+
+        <a-entity id="target4" mindar-image-target="targetIndex: 3">
+            <a-plane id="videoDisplay4" position="0 0 0" height="0.59" width="1" material="src: #demoVideo4"></a-plane>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        const playPauseButton = document.querySelector('#playPauseButton');
+        const openWebsiteButton = document.querySelector('#openWebsiteButton');
+
+        let isPlaying = false;
+        let targetVisible = false;
+        let currentVideo = null;
+
+        function togglePlayPause(videoElement, button) {
+            if (!targetVisible || !videoElement) return;
+            if (isPlaying) {
+                videoElement.pause();
+                button.textContent = 'Play';
+            } else {
+                videoElement.play();
+                button.textContent = 'Pause';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        playPauseButton.addEventListener('click', () => {
+            togglePlayPause(currentVideo, playPauseButton);
+        });
+
+        function onTargetFound(videoId) {
+            targetVisible = true;
+            currentVideo = document.querySelector(videoId);
+            playPauseButton.disabled = false;
+        }
+
+        function onTargetLost() {
+            targetVisible = false;
+            playPauseButton.disabled = true;
+            if (currentVideo) {
+                currentVideo.pause();
+                playPauseButton.textContent = 'Play';
+                isPlaying = false;
+            }
+        }
+
+        ['#target1', '#target2', '#target3', '#target4'].forEach((target, index) => {
+            document.querySelector(target).addEventListener('targetFound', () => onTargetFound(`#demoVideo${index + 1}`));
+            document.querySelector(target).addEventListener('targetLost', onTargetLost);
+        });
+
+        openWebsiteButton.addEventListener('click', () => {
+            window.open('https://www.overlay-ai.com/', '_blank');
+        });
+    </script>
+</body>
+</html>
